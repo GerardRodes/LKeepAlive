@@ -1,4 +1,4 @@
-# keep-alive
+# LKeepAlive
 
 ## [Demo](https://gerardrodes.github.io/LKeepAlive/)
 

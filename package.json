@@ -1,5 +1,7 @@
 {
   "name": "keep-alive",
+  "description": "vue keep-alive for multiple items",
+  "keywords": ["vue", "keep-alive", "v-for", "multiple"],
   "version": "0.1.0",
   "private": true,
   "scripts": {

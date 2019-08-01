@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    code {
+      display: block;
+      white-space: pre-wrap
+    }
+  </style>
+  <script type="module">
+    import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.esm.browser.js'
+
+    Vue.component('LKeepAlive', {
+      name: 'LKeepAlive',
+      data: () => ({
+        cache: new Map()
+      }),
+      render (h) {
+        if (!this.$scopedSlots.default) return
+
+        const vnodes = this.$scopedSlots.default()
+
+        const children = []
+
+        for (const [index, vnode] of vnodes.entries()) {
+          const componentOptions = vnode && vnode.componentOptions
+
+          if (!componentOptions) return vnode
+
+          const key = vnode.key == null
+            ? index + componentOptions.Ctor.cid + (componentOptions.tag ? `::${componentOptions.tag}` : '')
+            : vnode.key
+
+          if (this.cache.has(key)) {
+            vnode.componentInstance = this.cache.get(key).componentInstance
+          } else {
+            this.cache.set(key, vnode)
+          }
+
+          vnode.data.keepAlive = true
+          children.push(vnode)
+        }
+
+        return children.length === 1
+          ? children[0]
+          : h('div', null, children)
+      }
+    })
+
+    let counter = 0
+    Vue.component('Slow', {
+      name: 'Slow',
+      data: () => ({
+        counter: counter++,
+        value: 'loading...',
+        intervalCounter: 0
+      }),
+      created () {
+        setTimeout(() => {
+          this.value = 'done!!'
+        }, 1000)
+        setInterval(() => {
+          this.intervalCounter++
+        }, 1000)
+      },
+      template: `<div>{{ counter }} {{ _uid }} {{ value }} {{ intervalCounter }}</div>`
+    })
+
+    Vue.component('App', {
+      name: 'app',
+      data: () => ({
+        from: 0,
+        to: 10,
+        show: true,
+        singleExample: `
+<button @click="show = !show">toggle</button>
+<LKeepAlive>
+  <Slow v-if="show" />
+</LKeepAlive>
+        `,
+        listExample: `
+<input v-model="from" type="number" />
+<input v-model="to" type="number" />
+<LKeepAlive>
+  <Slow
+    v-for="n in items.slice(from, to)"
+    :key="n"
+  />
+</LKeepAlive>
+        `
+      }),
+      computed: {
+        items () {
+          return new Array(100)
+            .fill()
+            .map((_, i) => i)
+            .slice(this.from, this.to)
+        }
+      },
+      template: `
+        <div>
+          This is a single item with LKeepAlive<br>
+          <code v-text="singleExample" />
+          <button @click="show = !show">toggle</button>
+          <LKeepAlive>
+            <Slow v-if="show" />
+          </LKeepAlive>
+          <hr style="margin: 5rem 0"/>
+
+          This is a list with LKeepAlive<br>
+          <code v-text="listExample" />
+          <input v-model="from" type="number" />
+          <input v-model="to" type="number" />
+          <LKeepAlive>
+            <Slow
+              v-for="n in items"
+              :key="n"
+            />
+          </LKeepAlive>
+        </div>
+      `
+    })
+
+    Vue.config.productionTip = false
+    Vue.config.devtools = true
+
+    new Vue({
+      render: function (h) { return h('App') }
+    }).$mount('#app')
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+</body>
+</html>

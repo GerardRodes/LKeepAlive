@@ -7,6 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
+  "main": "src/LKeepAlive.js",
   "dependencies": {
     "vue": "^2.6.10"
   },
